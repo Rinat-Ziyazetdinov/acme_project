@@ -8,6 +8,7 @@
 {% block content %}
   <!-- Переносим тег with в самое начало блока content. -->
   {% with data=form.instance %}
+    {{ data.first_name }} {{ data.last_name }}
     <!-- Если в пути запроса содержится строка /edit/. -->
     {% if '/edit/' in request.path %}
       <!-- Вывести заголовок и номер записи. -->
