@@ -24,7 +24,7 @@
       </div>
       <div class="card-body">
         <!-- Укажите метод отправки запроса. -->
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
           <!-- Добавьте тег csrf_token. Без него POST-запрос будет отклонён. -->
           {% csrf_token %}
           <!-- Выводим поля формы с помощью специального тега. -->
