@@ -1,12 +1,8 @@
-from django.views.generic import CreateView, DeleteView, ListView, UpdateView
+from django.views.generic import (
+    CreateView, DeleteView, DetailView, ListView, UpdateView
+)
+
 from django.urls import reverse_lazy
-
-# Импортируем класс пагинатора.
-from django.core.paginator import Paginator
-
-# Импортируем шорткат для получения объекта или вызова 404 ошибки.
-# Дополнительно импортируйте шорткат для редиректа.
-from django.shortcuts import get_object_or_404, redirect, render
 
 # Импортируем класс BirthdayForm, чтобы создать экземпляр формы.
 from .forms import BirthdayForm
@@ -17,7 +13,7 @@ from .models import Birthday
 from .utils import calculate_birthday_countdown
 
 
-def delete_birthday(request, pk):
+'''def delete_birthday(request, pk):
     # Получаем объект модели или выбрасываем 404 ошибку.
     instance = get_object_or_404(Birthday, pk=pk)
     # В форму передаём только объект модели;
@@ -31,11 +27,12 @@ def delete_birthday(request, pk):
         # ...и переадресовываем пользователя на страницу со списком записей.
         return redirect('birthday:list')
     # Если был получен GET-запрос — отображаем форму.
-    return render(request, 'birthday/birthday.html', context)
+    return render(request, 'birthday/birthday.html', context)'''
 
-class BirthdayDeleteView(DeleteView):
+
+'''class BirthdayDeleteView(DeleteView):
     model = Birthday
-    success_url = reverse_lazy('birthday:list')
+    success_url = reverse_lazy('birthday:list')'''
 
 
 '''def edit_birthday(request, pk):
@@ -56,7 +53,7 @@ class BirthdayDeleteView(DeleteView):
     return render(request, 'birthday/birthday.html', context)'''
 
 
-def birthday(request, pk=None):  # объединили функции создания/редактирования
+'''def birthday(request, pk=None):  # объединили функции создания/редактирования
     # Если в запросе указан pk (если получен запрос на редактирование объекта):
     if pk is not None:
         # Получаем объект модели или выбрасываем 404 ошибку.
@@ -84,9 +81,9 @@ def birthday(request, pk=None):  # объединили функции созд�
         )
         # Обновляем словарь контекста: добавляем в него новый элемент.
         context.update({'birthday_countdown': birthday_countdown})
-    return render(request, 'birthday/birthday.html', context)
+    return render(request, 'birthday/birthday.html', context)'''
 
-class BirthdayCreateView(CreateView):
+'''class BirthdayCreateView(CreateView):
     # Указываем модель, с которой работает CBV...
     model = Birthday
     # Указываем имя формы:
@@ -95,10 +92,10 @@ class BirthdayCreateView(CreateView):
     template_name = 'birthday/birthday.html'
     # Указываем namespace:name страницы, куда будет перенаправлен пользователь
     # после создания объекта:
-    success_url = reverse_lazy('birthday:list')
+    success_url = reverse_lazy('birthday:list')'''
 
 
-def birthday_list(request):
+'''def birthday_list(request):
     # Получаем список всех объектов с сортировкой по id.
     birthdays = Birthday.objects.order_by('id')
     # Создаём объект пагинатора с количеством 10 записей на страницу.
@@ -113,7 +110,7 @@ def birthday_list(request):
     # Вместо полного списка объектов передаём в контекст
     # объект страницы пагинатора
     context = {'page_obj': page_obj}
-    return render(request, 'birthday/birthday_list.html', context)
+    return render(request, 'birthday/birthday_list.html', context)'''
 
 
 # Наследуем класс от встроенного ListView:
@@ -125,35 +122,51 @@ class BirthdayListView(ListView):
     # ...и даже настройки пагинации:
     paginate_by = 5
 
-class BirthdayUpdateView(UpdateView):
+'''class BirthdayUpdateView(UpdateView):
     model = Birthday
     form_class = BirthdayForm
     template_name = 'birthday/birthday.html'
-    success_url = reverse_lazy('birthday:list')
+    success_url = reverse_lazy('birthday:list')'''
 
 # Создаём миксины.
-class BirthdayMixin:
+'''class BirthdayMixin:
     model = Birthday
-    success_url = reverse_lazy('birthday:list')
+    success_url = reverse_lazy('birthday:list')'''
 
 
-class BirthdayFormMixin:
+'''class BirthdayFormMixin:
     form_class = BirthdayForm
-    template_name = 'birthday/birthday.html'
+    template_name = 'birthday/birthday.html'''
 
 
 # Добавляем миксин первым по списку родительских классов.
-class BirthdayCreateView(BirthdayMixin, BirthdayFormMixin, CreateView):
-    # Не нужно описывать атрибуты: все они унаследованы от BirthdayMixin.
-    pass
+class BirthdayCreateView(CreateView):  # BirthdayMixin, убрали
+    model = Birthday
+    form_class = BirthdayForm
 
 
-class BirthdayUpdateView(BirthdayMixin, BirthdayFormMixin, UpdateView):
-    pass
+class BirthdayUpdateView(UpdateView):  # BirthdayFormMixin, BirthdayMixin, убрали
+    model = Birthday
+    form_class = BirthdayForm
 
 
-class BirthdayDeleteView(BirthdayMixin, DeleteView):
-    pass
+class BirthdayDeleteView(DeleteView):  # BirthdayMixin, убрали
+    model = Birthday
+    success_url = reverse_lazy('birthday:list')
+
+class BirthdayDetailView(DetailView):
+    model = Birthday
+
+    def get_context_data(self, **kwargs):
+        # Получаем словарь контекста:
+        context = super().get_context_data(**kwargs)
+        # Добавляем в словарь новый ключ:
+        context['birthday_countdown'] = calculate_birthday_countdown(
+            # Дату рождения берём из объекта в словаре context:
+            self.object.birthday
+        )
+        # Возвращаем словарь контекста.
+        return context
 
 
 """def birthday(request):
