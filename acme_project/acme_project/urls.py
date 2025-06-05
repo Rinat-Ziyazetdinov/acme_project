@@ -8,8 +8,9 @@ from django.contrib import admin
 from django.urls import include, path, reverse_lazy
 
 # Добавьте новые строчки с импортами классов.
-from django.contrib.auth.forms import UserCreationForm
+#from django.contrib.auth.forms import UserCreationForm
 from django.views.generic.edit import CreateView
+from users.forms import CustomUserCreationForm  # Импортируем свою форму
 
 urlpatterns = [
     path('', include('pages.urls')),
@@ -21,7 +22,7 @@ urlpatterns = [
         'auth/registration/',
         CreateView.as_view(
             template_name='registration/registration_form.html',
-            form_class=UserCreationForm,
+            form_class=CustomUserCreationForm,  # Используем свою форму
             success_url=reverse_lazy('pages:homepage'),
         ),
         name='registration',
