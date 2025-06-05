@@ -1,3 +1,7 @@
+from django.contrib.auth.mixins import UserPassesTestMixin, LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+
 from django.views.generic import (
     CreateView, DeleteView, DetailView, ListView, UpdateView
 )
@@ -11,6 +15,10 @@ from .models import Birthday
 
 # Импортируем из utils.py функцию для подсчёта дней.
 from .utils import calculate_birthday_countdown
+
+@login_required
+def simple_view(request):
+    return HttpResponse('Страница для залогиненных пользователей!')
 
 
 '''def delete_birthday(request, pk):
@@ -138,19 +146,36 @@ class BirthdayListView(ListView):
     form_class = BirthdayForm
     template_name = 'birthday/birthday.html'''
 
+# Добавляем миксин для тестирования пользователей, обращающихся к объекту
+class OnlyAuthorMixin(UserPassesTestMixin):
+
+    def test_func(self):
+        # Получаем текущий объект.
+        object = self.get_object()
+        # Метод вернёт True или False. 
+        # Если пользователь - автор объекта, то тест будет пройден.
+        # Если нет, то будет вызвана ошибка 403.
+        return object.author == self.request.user
+
 
 # Добавляем миксин первым по списку родительских классов.
-class BirthdayCreateView(CreateView):  # BirthdayMixin, убрали
+class BirthdayCreateView(LoginRequiredMixin, CreateView):  # BirthdayMixin, убрали
+    model = Birthday
+    form_class = BirthdayForm
+
+    def form_valid(self, form):
+        # Присвоить полю author объект пользователя из запроса.
+        form.instance.author = self.request.user
+        # Продолжить валидацию, описанную в форме.
+        return super().form_valid(form)
+
+
+class BirthdayUpdateView(OnlyAuthorMixin, UpdateView):  # BirthdayFormMixin, BirthdayMixin, убрали
     model = Birthday
     form_class = BirthdayForm
 
 
-class BirthdayUpdateView(UpdateView):  # BirthdayFormMixin, BirthdayMixin, убрали
-    model = Birthday
-    form_class = BirthdayForm
-
-
-class BirthdayDeleteView(DeleteView):  # BirthdayMixin, убрали
+class BirthdayDeleteView(LoginRequiredMixin, DeleteView):  # BirthdayMixin, убрали
     model = Birthday
     success_url = reverse_lazy('birthday:list')
 
